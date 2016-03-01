@@ -1,6 +1,31 @@
 #!/bin/bash
 # Pantheon Puller
 
+if [ "$1" != "" ]; then
+# argument was passed, just pull dev stuff
+
+  # Use our argment to pull the site
+  pantheonsite=$1
+  # the default environment should be dev
+  pantheonenv="dev"
+
+  # Create the db backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=db
+  wait
+  # Create the files backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=files
+  wait
+
+  # Pull the new db backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=db --latest --to="~/Downloads"
+  wait
+  # Pull the new files backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
+  wait
+
+else
+# no argument was passed, run config
+
 # set env
 pantheonauth=
 echo ""
@@ -120,5 +145,7 @@ if [ "$pantheontarget" == "3" ]; then
   # Pull the new files backup down
   terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
   wait
+
+fi
 
 fi
