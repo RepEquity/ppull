@@ -1,0 +1,124 @@
+#!/bin/bash
+# Pantheon Puller
+
+# set env
+pantheonauth=
+echo ""
+echo "Do you need to authenticate? > "
+echo "y - yes"
+echo "n - no"
+echo ""
+echo -n "Enter selection: "
+read pantheonauth
+echo ""
+
+if [ "$pantheonauth" == "y" ]; then
+
+  # Get the pantheon username
+  echo -n "Enter your Pantheon Email Address > "
+  read pantheonemail
+
+  # Get the pantheon password (while hiding the input)
+  echo -n "Enter your Pantheon Password > "
+  stty -echo
+  read pantheonpass
+  stty echo
+
+  terminus auth login $pantheonemail --password=$pantheonpass
+
+fi
+
+# set site
+pantheonsite="0"
+while [ "$pantheonsite" == "0" ]; do
+  echo " "
+  echo -n "Enter a site name or type list to see a list of all sites (site list may take a while to load) > "
+  read pantheonsite
+
+  if [ "$pantheonsite" == "list" ]; then
+    # list all sites if a list is requested
+    terminus sites list
+    pantheonsite="0"
+  fi
+
+done
+
+# set env
+pantheonenv=
+echo ""
+echo "Select an environment > "
+echo "1 - dev"
+echo "2 - test"
+echo "3 - live"
+echo ""
+echo -n "Enter selection: "
+read pantheonenv
+echo ""
+
+if [ "$pantheonenv" == "1" ]; then
+  pantheonenv="dev"
+fi
+
+if [ "$pantheonenv" == "2" ]; then
+  pantheonenv="test"
+fi
+
+if [ "$pantheonenv" == "3" ]; then
+  pantheonenv="live"
+fi
+
+# what are we pulling
+pantheontarget=
+echo ""
+echo "Select what you want to pull > "
+echo "1 - db"
+echo "2 - files"
+echo "3 - both"
+echo ""
+echo -n "Enter selection: "
+read pantheontarget
+echo ""
+
+if [ "$pantheontarget" == "1" ]; then
+
+  # Create the db backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=db
+  wait
+
+  # Pull the new db backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=db --latest --to="~/Downloads"
+  wait
+
+  echo "your download is done"
+
+fi
+
+if [ "$pantheontarget" == "2" ]; then
+
+  # Create the files backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=files
+  wait
+
+  # Pull the new files backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
+  wait
+
+fi
+
+if [ "$pantheontarget" == "3" ]; then
+
+  # Create the db backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=db
+  wait
+  # Create the files backup
+  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=files
+  wait
+
+  # Pull the new db backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=db --latest --to="~/Downloads"
+  wait
+  # Pull the new files backup down
+  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
+  wait
+
+fi
