@@ -8,20 +8,22 @@ if [ "$1" != "" ]; then
   pantheonsite=$1
   # the default environment should be dev
   pantheonenv="dev"
+  # define the target
+  pantheontarget=$2
 
-  # Create the db backup
-  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=db
-  wait
-  # Create the files backup
-  terminus site backups create --site=$pantheonsite --env=$pantheonenv --element=files
-  wait
+  if [ "$pantheontarget" == "db" ]; then
+    pantheontarget="1"
+  fi
 
-  # Pull the new db backup down
-  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=db --latest --to="~/Downloads"
-  wait
-  # Pull the new files backup down
-  terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
-  wait
+  if [ "$pantheonenv" == "files" ]; then
+    pantheontarget="2"
+  fi
+
+  if [ "$pantheonenv" == "" ]; then
+    pantheontarget="3"
+  fi
+
+  echo "You are pulling $pantheonsite"
 
 else
 # no argument was passed, run config
@@ -104,6 +106,8 @@ echo -n "Enter selection: "
 read pantheontarget
 echo ""
 
+fi
+
 if [ "$pantheontarget" == "1" ]; then
 
   # Create the db backup
@@ -145,7 +149,5 @@ if [ "$pantheontarget" == "3" ]; then
   # Pull the new files backup down
   terminus site backups get --site=$pantheonsite --env=$pantheonenv --element=files --latest --to="~/Downloads"
   wait
-
-fi
 
 fi
